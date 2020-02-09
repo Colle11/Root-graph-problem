@@ -1,0 +1,324 @@
+\documentclass[10pt,a4paper,oneside,article,italian]{memoir}
+
+\usepackage[italian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage[backref, colorlinks=true]{hyperref}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage[capitalise]{cleveref}
+\usepackage{amssymb, amsthm, amsmath}
+\usepackage{etoolbox}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{booktabs}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+
+\newcommand{\mytitle}{
+  \thispagestyle{empty}
+  {
+    \rule{2pt}{\textheight}
+    \hspace{5pt}
+    \parbox[b][\textheight]{0.85\textwidth}{
+      \vspace{50pt}
+      
+      \Huge \textsc{UNIVERSIT\'A DI UDINE} \large \\
+      \vspace{20pt}
+      
+      \huge \textsc{informatica} \large \\
+      
+      \Large \textsc{anno accademico 2015-2016} \large \\
+      \vspace{70pt}
+      
+      \huge Relazione del progetto di laboratorio di \\
+      \Huge \textbf{Algoritmi e Strutture Dati} \\
+      \vspace{70pt}
+
+      \large \emph{Studente:} \\
+      \textsc{Michele Collevati} \\[0.2cm]
+
+      \large \emph{Matricola:} \\
+      \textsc{116286} \\[0.2cm]
+
+      \large \emph{Mail:} \\
+      \large \href{mailto:collevati.michele@spes.uniud.it}
+                {collevati.michele@spes.uniud.it} \\[0.2cm]
+
+      \vfill
+    }
+  }
+}
+
+\titleformat{\chapter}[display]
+{\normalfont\Large\bfseries}{\chaptertitlename\ \thechapter}{20pt}{\huge}
+\titlespacing*{\chapter}{0pt}{-50pt}{40pt}
+
+\newcommand{\capitolo}{\newpage\chapter}
+
+\crefname{enumi}{punto}{punti}
+\crefname{figure}{Figura}{Figure}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definizione}
+\newtheorem{teorema}{Teorema}
+
+\AfterEndEnvironment{definition}{\noindent\ignorespaces}
+\AfterEndEnvironment{proof}{\noindent\ignorespaces}
+
+\algdef{SE}[DOWHILE]{Do}{doWhile}{\algorithmicdo}[1]{\algorithmicwhile\ #1}%
+
+\pgfplotsset{compat=1.12}
+\pgfplotstableread{experimental_times.dat}\timetable
+
+\begin{document}
+\mytitle
+\tableofcontents*
+\capitolo{Introduzione}
+La presente relazione tratta del progetto di Algoritmi e Strutture Dati assegnato dal Prof. Alberto Policriti nell'anno accademico 2015/2016, e fa riferimento alle specifiche fornite nel documento \textit{"progetto\_ASD\_2015-16-1.2.pdf"} distribuito per lo svolgimento della prova ed allegato alla presente.\\
+Il progetto consiste nel risolvere un problema su grafi e nell'implementare un programma progettato mediante una combinazione degli strumenti, algoritmi e strutture dati, illustrati durante le lezioni del corso di ASD.\\
+Si vuole, con le presenti pagine, esporre il problema di natura computazionale affrontato, indicare le specifiche seguite, descrivere la soluzione adottata con relativo studio della complessità teorica e valutazione di correttezza degli algoritmi proposti, precisare le condizioni sotto le quali è stato implementato il programma e sono state effettuate le misurazioni dei tempi, ed infine illustrare tutte le osservazioni necessarie.
+
+\capitolo{Condizioni di sviluppo e misurazione dei tempi}
+Il programma è stato implementato in linguaggio \textit{Java} versione \textit{1.7} e sviluppato in ambiente \textit{Linux (Ubuntu 14.04, 64-bit)} utilizzando l'ambiente di sviluppo \textit{Eclipse Mars 2 (4.5.2)}.\\
+I test sperimentali relativi alla misurazione dei tempi sono stati effettuati su un \textit{Computer Desktop} con processore \textit{Intel Core i5-750 Quad Core} e con sistema operativo \textit{Ubuntu 14.04 (64-bit)} su macchina virtuale.
+
+\capitolo{Guida alla compilazione}
+I seguenti comandi per la compilazione si riferiscono al terminale di Linux.\\
+Per eseguire la compilazione del programma vanno effettuate le seguenti operazioni da terminale:
+\begin{enumerate}[label=(\arabic*)]
+\item \label{itm:firstOp} Estrarre il contenuto dell'archivio e portarsi nella directory\\
+\texttt{"Collevati\_116286/progettoSolver/"};
+\item Eseguire il comando \texttt{"javac *.java"};
+\item Per lanciare il programma reindirizzando l'input da file eseguire il comando \texttt{"java Main < /path/file"};
+\end{enumerate}
+Per la compilazione del programma per la misurazione dei tempi la procedura è analoga, con l'unica differenza che al \cref{itm:firstOp} bisogna portarsi nella directory \texttt{"Collevati\_116286/progettoTempi/"}. Quest'ultimo programma non richiede alcun file in input, ma genera su \textit{standard output (stdout)} le informazioni relative ai test sperimentali, mentre genera su \textit{standard error (stderr)} le informazioni relative all'attuale stato di computazione. Per redirigere su file solamente i dati significativi per la misurazione dei tempi, eseguire il seguente comando: \texttt{"java Main 1> /path/file"}, in tal modo lo \textit{standard output} viene scritto su file, mentre lo \textit{standard error} viene stampato su terminale.
+
+\capitolo{Problema e Specifiche}
+\section{Problema}
+\begin{definition}\label{def:radice}
+\textit{Dato un grafo orientato G = (V,E) diciamo che} ammette una radice \textit{se e solo se esiste un nodo $r \in V$ tale che ogni $v \in V$ sia raggiungibile da r in G.}
+\end{definition}
+\textbf{Problema 1.} \textit{Dato in input un grafo orientato G,}
+\begin{enumerate}[label=(\arabic*)]
+\item \label{itm:firstPoint} \textit{si determini il numero minimo di archi da aggiungere a G in modo tale da ottenere G' = (V,E') che ammetta una radice r;}
+\item \label{itm:secPoint} \textit{si produca un albero T = (V,$E_T$) dei cammini minimi in G' di radice r.}
+\end{enumerate}
+\vspace{10pt}
+\textbf{Note:}
+\begin{itemize}
+\item \textbf{non} è ammesso aggiungere nodi ma solo archi al grafo \textit{G};
+\item \textbf{non} è detto che \textit{G'} sia diverso da \textit{G}, potrebbe anche essere uguale, poichè non è stato necessario aggiungere alcun arco a \textit{G} dato che ammette già una radice \textit{r};
+\item \textbf{non} è detto che il grafo \textit{G} sia connesso, potrebbe non esserlo;
+\item alla fine si deve ottenere un nodo di \textit{G'} (la radice \textit{r}) da cui raggiungere tutti gli altri.
+\end{itemize}
+\section{Specifiche}
+L'input del programma sarà dato in formato dot e l'output dovrà essere fornito nello stesso linguaggio.\\
+L'output dovrà essere un grafo \textit{G' = (V,E')} che rappresenterà contemporaneamente sia \textit{G'} che \textit{T} secondo le seguenti direttive:
+\begin{enumerate}[label=(\arabic*)]
+\item \textit{G'} deve ammettere una radice \textit{r} etichettata con la parola \textit{root} e con il numero naturale $|\textit{E'}| - |\textit{E}|$ (che deve essere il sia minimo possibile);
+\item gli archi in $\textit{E'} \setminus \textit{E}$ devono essere colorati di rosso;
+\item \textit{T} deve essere un albero di radice \textit{r};
+\item ogni nodo di \textit{T} deve essere etichettato con la sua distanza dalla radice;
+\item ogni arco di \textit{T} deve essere tratteggiato.
+\end{enumerate}
+
+\capitolo{Soluzione del problema}
+In questo capitolo verrà descritta la soluzione adottata per il problema presentando inizialmente l'idea generale e successivamente andando ad esporre ed analizzare lo pseudo-codice del programma, per poi studiarne la complessità teorica e valutarne la correttezza.\\
+Per la rappresentazione del grafo verranno utilizzate le liste di adiacenza, pertanto l'analisi della complessità teorica sarà effettuata tenendo in considerazione tale scelta.\\
+Si ricordi durante la discussione della soluzione che il grafo \textit{G} in input è orientato, tale informazione verrà sottintesa nel seguito.\\\\
+L'idea generale per la soluzione del \cref{itm:firstPoint} del problema è la seguente:
+\begin{enumerate}[label=(\arabic*)]
+\item \label{itm:firSolOne} Calcolare le \textit{componenti fortemente connesse} (che nel seguito si indicheranno con l'acronimo inglese \textit{SCC}) del grafo \textit{G} in input;
+\item \label{itm:secSolOne} Trovare tutti gli archi che attraversano \textit{SCC} diverse;
+\item \label{itm:thiSolOne} Creare un nuovo grafo \textit{G'} che ha come nodi i rappresentanti delle \textit{SCC} del grafo \textit{G} e come archi tutti quelli trovati al \cref{itm:secSolOne}, aggiunti a \textit{G'} in modo tale da collegare i rappresentanti delle rispettive \textit{SCC};
+\item \label{itm:fouSolOne} Prendere come radice \textit{r} di \textit{G} un qualsiasi nodo di \textit{G'} che non abbia archi entranti (ovvero si sceglie come radice \textit{r} di \textit{G} un rappresentante di una qualsiasi \textit{SCC} che non sia raggiunta da nessun altra \textit{SCC}; si noti che come rappresentante di una \textit{SCC} si può prendere qualsiasi nodo appartenente a quella \textit{SCC});
+\item \label{itm:fifSolOne} Aggiungere tanti archi a \textit{G} quanti sono i nodi di \textit{G'}, diversi dalla radice \textit{r}, che non hanno archi entranti (chiameremo questi nodi \textit{E-Nodes}). I nuovi archi in \textit{G} andranno dalla radice \textit{r} ai rappresentanti delle \textit{SCC} che corrispondono ai nodi \textit{E-Nodes} di \textit{G'}.
+\end{enumerate}
+Per la soluzione del \cref{itm:secPoint} del problema l'idea è la seguente:
+\begin{enumerate}[label=(\arabic*)]
+\setcounter{enumi}{5}
+\item Eseguire una \textit{BFS (Breadth-First Search)} in \textit{G} partendo dalla radice \textit{r} per produrre un albero \textit{T} dei cammini minimi (non è detto che tale albero \textit{T} sia l'unico possibile).
+\end{enumerate}
+Dato il grafo \textit{G} in input, il \cref{itm:firSolOne} della soluzione consiste nel calcolare le sue \textit{SCC} tramite l'algoritmo di \textit{Tarjan}, opportunamente modificato per svolgere contemporaneamente anche il \cref{itm:secSolOne} e il \cref{itm:thiSolOne}. Tale algoritmo è costituito da una procedura esterna, che chiameremo \textit{"TarjanSCC"}, che si occupa di inizializzare il grafo \textit{G}, inizializzare le strutture dati di supporto e lanciare per ogni nodo non ancora visitato la procedura ricorsiva interna, che chiameremo \textit{"StrongConnect"}. Quest'ultima svolge la parte fondamentale dell'algoritmo eseguendo una sola \textit{DFS (Depth-First Search)} del grafo \textit{G}, trovando tutti i successori del nodo \textit{v} attualmente visitato ed aggiungendo come nodi del nuovo grafo \textit{G'}, che sarà restituito in output dall'algoritmo, i rappresentanti delle \textit{SCC} calcolate.\\
+Prima di proseguire è importante far notare che ad ogni nodo è associata una proprietà \textit{color} che memorizza il colore assunto da esso durante l'esecuzione dell'algoritmo. Il colore può essere \textit{WHITE} (nodo non visitato), \textit{GREY} (nodo in visita) o \textit{BLACK} (nodo visitato).\\
+Per poter svolgere il \cref{itm:secSolOne} della soluzione è stato aggiunto un ulteriore controllo all'interno della procedura \textit{"StrongConnect"}, il quale verifica, per ogni nodo \textit{w} presente nella lista di adiacenza del nodo \textit{v} attualmente visitato, se il suo colore è \textit{BLACK} e in tal caso aggiunge l'arco \textit{(v,w)} alla lista di archi chiamata \textit{"egdes"}. Tale lista è necessaria per salvare tutti gli archi che attraversano \textit{SCC} diverse, infatti dopo aver visitato tutti i nodi di \textit{G}, \textit{"edges"} conterrà gli archi che stiamo cercando. Si noti che nel caso in cui non ci siano archi tra \textit{SCC} diverse, la lista sarà vuota. Successivamente gli archi contenuti in \textit{"edges"} verranno aggiunti al grafo \textit{G'} all'interno della procedura \textit{"TarjanSCC"}, come ultima operazione eseguita prima di restituire \textit{G'}.\\
+Prima di passare alla spiegazione del prossimo punto, bisogna sapere che ad ogni nodo è assegnato un intero unico chiamato \textit{"start"}, che indica il tempo di scoperta del nodo, ed anche un altro intero chiamato \textit{"lowStart"}, che indica il tempo di inizio visita minimo tra quelli dei nodi raggiunti dal nodo. Per impostare questi due valori useremo un clock globale chiamato \textit{"time"}, inizializzato al valore \textit{0} ed incrementato di \textit{1} ogni volta che viene visitato un nodo nuovo.\\
+Per svolgere il \cref{itm:thiSolOne} della soluzione è necessario, durante l'esecuzione della procedura \textit{"StrongConnect"}, aggiungere a \textit{G'} il nodo \textit{v} attualmente visitato soltanto se le sue variabili \textit{"start"} e \textit{"lowStart"} sono uguali, perchè ciò significa che è stata trovata una nuova \textit{SCC} e il nodo \textit{v} è usato come il rappresentante. Tale operazione viene eseguita solo dopo aver visitato tutta la lista di adiacenza del nodo \textit{v}, ed è l'ultima ad essere eseguita prima di terminare la \textit{"StrongConnect"}.\\
+Il grafo \textit{G'} risultante dall'esecuzione dell'algoritmo di \textit{Tarjan} esposto sopra è un \textit{DAG (Directed Acyclic Graph)}, che ci offre la certezza di avere almeno una sorgente, cioè un nodo senza archi entranti, proprietà fondamentale per il corretto funzionamento dei successivi algoritmi. L'unica osservazione da fare sul grafo \textit{G'} è che in alcuni casi potrebbe avere degli archi ripetuti. Questo si verifica quando nodi diversi in \textit{G} appartenenti alla stessa \textit{SCC} hanno un arco uscente verso un'altra uguale \textit{SCC}, ma ciò non rappresenta un problema al fine del raggiungimento dell'obiettivo finale.\\
+Il \cref{itm:fouSolOne} e \ref{itm:fifSolOne} vengono realizzati grazie a due algoritmi che chiameremo \textit{"getRootAndMinEdges"} e \textit{"addRootAndMinEdges"}. Il primo si occupa di analizzare tutti i nodi del grafo \textit{G'}, che altro non sono che i rappresentanti delle \textit{SCC} del grafo \textit{G}, e scegliere come radice \textit{r} per \textit{G} il primo nodo senza archi entranti che viene incontrato (si potrebbe scegliere qualsiasi nodo di \textit{G'} senza archi entranti, ma per semplicità si prende il primo incontrato). Una volta determinata la radice \textit{r} di \textit{G}, per ogni successivo nodo \textit{v} senza archi entranti incontrato durante la scansione del grafo \textit{G'}, viene aggiunto l'arco \textit{(r,v)} alla lista di archi chiamata \textit{"minimumEdges"}. Tale lista è necessaria per salvare tutti gli archi che costituiranno il minimo numero di archi da aggiungere a \textit{G} in modo tale che ammetta \textit{r} come radice. Si noti che nel caso in cui tutti i nodi di \textit{G'}, eccetto la radice \textit{r}, abbiano almeno un arco entrante, la lista sarà vuota.\\
+L'algoritmo \textit{"getRootAndMinEdges"} restituisce in output la coppia costituita dalla radice \textit{r} e dalla lista di archi \textit{"minimumEdges"}. Tale coppia sarà l'input per \textit{"addRootAndMinEdges"} che si occupa di impostare la radice \textit{r} di \textit{G} con quella trovata dal precedente algoritmo e di aggiungere tutti gli archi presenti nella lista al grafo \textit{G}.\\
+Con questi algoritmi si risolve il \cref{itm:firstPoint} del problema, cioè ottenere un nodo di \textit{G} (la radice \textit{r}) da cui raggiungo tutti gli altri.\\
+Per risolvere il \cref{itm:secPoint}, basta eseguire una \textit{BFS} in \textit{G} partendo dalla radice \textit{r} e marcando con \textit{DASHED} tutti gli archi che si percorrono per raggiungere tutti i nodi. L'albero \textit{T} dei cammini minimi in \textit{G} di radice \textit{r} sarà costituito da tutti i nodi e da tutti gli archi precedentemente marcati con \textit{DASHED}.\\
+Le strutture dati di supporto utilizzate nei precedenti algoritmi sono: la lista di archi, necessaria per \textit{"TarjanSCC"}, \textit{"getRootAndMinEdges"} e \textit{"addRootAndMinEdges"}; lo stack, necessario per \textit{"TarjanSCC"}; la coda FIFO, necessaria per la \textit{BFS}.\\
+Nelle pagine seguenti lo pseudo-codice degli algoritmi appena descritti, ad eccezione della \textit{BFS} poichè uguale a quella vista a lezione.
+
+\begin{algorithm}
+	\caption{Calcola le $SCC$ del grafo $G$ e crea il nuovo grafo $G'$}
+	\begin{algorithmic}[1]
+	\Procedure{TarjanSCC}{\textit{Graph G = (V, E)}}
+		\For{\textbf{each} $v \in V$} 
+			\State $v.color \gets WHITE$
+			\State $v.start \gets -1$
+			\State $v.lowStart \gets -1$
+		\EndFor
+		\State $time \gets 0$
+		\State $G' \gets new$ $Graph$ \Comment \textit{Graph G' = (V', E')}
+		\State $S \gets new$ $Stack$
+		\State $edges \gets new$ $List$
+		\For{\textbf{each} $v \in V$} 
+			\If{$v.color = WHITE$}
+				\State $time \gets \textsc{StrongConnect}(\textit{G, G', v, time, S, edges})$
+			\EndIf
+		\EndFor
+		\While{$edges \ne \emptyset$}
+			\State $edge \gets edges.head$
+			\State $E'.addEdge(edge)$
+			\State $edges \gets edges.tail$
+		\EndWhile
+		\State\Return $G'$
+	\EndProcedure
+	\\
+	\Procedure{StrongConnect}{\textit{Graph G = (V, E), Graph G' = (V', E'), Vertex v, var time, Stack S, List edges}}
+		\State $v.color \gets GREY$
+		\State $v.start \gets time$
+		\State $v.lowStart \gets time$
+		\State $time \gets time+1$
+		\State $S.push(v)$
+		\For{\textbf{each} $(v,w) \in E$}
+			\If{$w.color = WHITE$}
+				\State $time \gets \textsc{StrongConnect}(\textit{G, G', w, time, S, edges})$
+				\State $v.lowStart \gets min(v.lowStart, w.lowStart)$
+			\ElsIf{$w.color = GREY$}
+				\State $v.lowStart \gets min(v.lowStart, w.start)$
+			\EndIf
+			\If{$w.color = BLACK$}
+				\State \textit{add (v,w) in edges}
+			\EndIf
+		\EndFor
+		\If{$v.lowStart = v.start$}
+			\State $V'.addVertex(v)$
+			\Do
+				\State $w \gets S.pop$
+				\State $w.lowStart \gets v.lowStart$
+				\State $w.color \gets BLACK$
+			\doWhile{$w \ne v$}
+		\EndIf
+		\State\Return $time$
+	\EndProcedure
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+	\caption{Ricerca radice $r$ e minimo numero di archi da aggiungere a $G$}
+	\begin{algorithmic}[1]
+	\Procedure{getRootAndMinEdges}{\textit{Graph G' = (V', E')}}
+		\State $minimumEdges \gets new$ $List$
+		\State $foundRoot \gets FALSE$
+		\State $root \gets NIL$
+		\For{\textbf{each} $v \in V'$} \Comment \textit{v.inAdj = lista adiacenza archi entranti in v}
+			\If{$!foundRoot \wedge v.inAdj = \emptyset$}
+				\State $foundRoot \gets TRUE$
+				\State $root \gets v$
+			\ElsIf{$v.inAdj = \emptyset$}
+				\State \textit{add (r,v) in minimumEdges}
+			\EndIf
+		\EndFor
+		\State\Return $(root, minimumEdges)$
+	\EndProcedure
+	\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+	\caption{Imposta radice $r$ e aggiunge archi al grafo $G$}
+	\begin{algorithmic}[1]
+	\Procedure{addRootAndMinEdges}{\textit{Graph G = (V, E), Vertex root, List minimumEdges}}
+		\State $G.root \gets root$
+		\While{$minimumEdges \ne \emptyset$}
+			\State $edge \gets minimumEdges.head$
+			\State $E.addEdge(edge)$
+			\State $minimumEdges \gets minimumEdges.tail$
+		\EndWhile
+	\EndProcedure
+	\end{algorithmic}
+\end{algorithm}
+\newpage
+\section{Complessità}\label{sec:complessita}
+Si studierà ora la complessità teorica dell'algoritmo proposto per risolvere il problema.\\
+Iniziamo considerando l'algoritmo di \textit{Tarjan} che, come già accennato, è lievemente modificato rispetto a quello presente in letteratura. Le principali aggiunte che sono state introdotte sono due: la prima riguarda un controllo all'interno della procedura \textit{"StrongConnect"}, il quale verifica, per ogni nodo \textit{w} presente nella lista di adiacenza del nodo \textit{v} attualmente visitato, se il suo colore è \textit{BLACK} e in tal caso aggiunge l'arco \textit{(v,w)} alla lista di archi \textit{"egdes"}. Tale operazione ha costo costante \textit{O(1)} e pertanto non influisce sulla complessità asintotica dell'algoritmo.\\
+La seconda aggiunta si trova all'interno della procedura \textit{"TarjanSCC"}, come ultima operazione da eseguire prima di restituire \textit{G'}, e riguarda la scansione della lista \textit{"edges"} per aggiungere tutti gli archi trovati al nuovo grafo \textit{G'}. Tale operazione ha un costo pari a \textit{$O(|E|)$}, poichè nel caso peggiore la lista può contenere al più tutti gli archi di \textit{G}. Quindi, dato che prima di quest'ultima operazione la procedura ha la stessa complessità dell'algoritmo di \textit{Tarjan}, che è lineare nel numero di archi e nodi in \textit{G}, cioè \textit{$O(|V|+|E|)$}, l'aggiunta di un costo pari a \textit{$O(|E|)$} non cambia la complessità asintotica dell'algoritmo, che in definitiva è di \textit{$O(|V|+|E|)$}.\\
+Successivamente viene eseguito l'algoritmo \textit{"getRootAndMinEdges"}, che si occupa di scandire tutti i nodi del grafo \textit{G'} alla ricerca della radice \textit{r} e del minimo numero di archi da aggiungere a \textit{G} in modo tale che ammetta \textit{r} come radice. Dato che nel caso peggiore ogni nodo di \textit{G} può essere una \textit{SCC}, e quindi \textit{G'} avrebbe lo stesso numero di nodi di \textit{G}, la complessità asintotica di questo algoritmo è \textit{$O(|V|)$} con \textit{$V \in G$}.\\
+L'algoritmo seguente è \textit{"addRootAndMinEdges"}, che si occupa di impostare la radice \textit{r} e di aggiungere effettivamente al grafo \textit{G} tutti gli archi trovati dalla procedura \textit{"getRootAndMinEdges"}. La parte più costosa dell'algoritmo riguarda la scansione della lista \textit{"minimumEdges"} per l'aggiunta degli archi. Tale lista nel caso peggiore può contenere al più un numero di archi uguale al numero di nodi di \textit{G'} meno \textit{1}. Pertanto il costo dell'algoritmo dipende dal numero di nodi di \textit{G'}, che a sua volta dipende dal numero di \textit{SCC} del grafo \textit{G}, e quindi la complessità asintotica è \textit{$O(|V|)$} con \textit{$V \in G$}.\\
+La complessità dell'ultimo algoritmo eseguito, \textit{BFS}, è nota essere \textit{$O(|V|+|E|)$}, come si è visto a lezione. Volendo rendere il più accurata possibile l'analisi, si osserva che la \textit{BFS} viene eseguita partendo dalla radice \textit{r}, che per \cref{def:radice} sappiamo raggiungere tutti i nodi del grafo. Quindi l'esecuzione dell'algoritmo ricade sempre nel caso peggiore, cioè ogni nodo e ogni arco viene esplorato, per cui la complessità asintotica in realtà è \textit{$\Theta(|V|+|E|)$}.\\
+In conclusione, l'algoritmo che domina tra tutti per complessità è \textit{BFS}, e quindi la soluzione risulta avere una complessità finale pari a \textit{$\Theta(|V|+|E|)$}.
+\section{Correttezza}
+Per la valutazione di correttezza della soluzione proposta ci si sofferma a dimostrare solamente quelle parti degli algoritmi che costituiscono una variazione rispetto agli algoritmi presenti in letteratura.\\
+Si dimostra la correttezza dell'aggiunta introdotta nell'algoritmo \textit{"StrongConnect"}.
+\begin{teorema}
+Nell'algoritmo \textit{"StrongConnect"}, se il nodo \textit{v} attualmente visitato incontra, durante la visita della sua lista di adiacenza, un nodo \textit{w} colorato di \textit{BLACK} allora l'arco \textit{(v,w)} collega due \textit{SCC} diverse.
+\end{teorema}
+\begin{proof}[\textbf{Dimostrazione}]
+La dimostrazione segue dall'invariante dello stack dell'algoritmo di \textit{Tarjan}. I nodi sono collocati sullo stack nell'ordine in cui sono visitati. Quando la ricerca in profondità visita ricorsivamente un nodo \textit{v} e i suoi discendenti, quei nodi non sono tutti necessariamente prelevati dallo stack quando queste chiamate ricorsive terminano. La proprietà invariante cruciale è che un nodo rimane nello stack dopo che è stato visitato se e solo se esiste un percorso nel grafo da esso verso qualche nodo precedente nello stack. Alla fine della chiamata che visita il nodo \textit{v} ed i suoi discendenti, sappiamo se \textit{v} stesso ha un percorso verso qualsiasi nodo precedente nello stack. Se è così, la chiamata termina, lasciando \textit{v} sullo stack per preservare l'invariante. Altrimenti, \textit{v} deve essere il rappresentante della sua \textit{SCC}, che consiste in \textit{v} assieme con tutti gli altri nodi successivi a \textit{v} nello stack (questi nodi hanno tutti percorsi che ritornano fino a \textit{v} ma non a qualsiasi nodo precedente, perchè se avessero percorsi a nodi precedenti, allora anche \textit{v} avrebbe percorsi a nodi precedenti, che è falso). La \textit{SCC} rappresentata da \textit{v} viene poi prelevata dallo stack colorando ogni suo nodo di \textit{BLACK}. Pertanto tali nodi non saranno più visitati, ed ogniqualvolta saranno raggiunti da un arco uscente da un altro nodo \textit{w} vorrà dire che tale arco collega due \textit{SCC} diverse.
+\end{proof}
+Si dimostra che l'algoritmo \textit{"getRootAndMinEdges"} determina effettivamente il minimo numero di archi.
+\begin{teorema}
+L'algoritmo \textit{"getRootAndMinEdges"} determina il numero minimo di archi da aggiungere al grafo \textit{G} in modo tale che ammetta una radice \textit{r}.
+\end{teorema}
+\begin{proof}[\textbf{Dimostrazione}]
+Sia \textit{G'} il \textit{DAG} dei rappresentanti delle \textit{SCC} del grafo \textit{G}, si suppone che abbia \textit{n} nodi, di cui \textit{m} (con \textit{$m \le n$}) non hanno archi entranti. Presa come radice \textit{r} di \textit{G'} uno qualsiasi di questi \textit{m} nodi, il minimo numero di archi da aggiungere a \textit{G'} in modo tale che ammetta \textit{r} come radice è banalmente uguale a \textit{m-1}, e corrispondono a tutti gli archi che vanno dalla radice \textit{r} agli altri \textit{m-1} nodi. Per tutti gli altri \textit{n-m} nodi esiste già un percorso da uno degli \textit{m} nodi per raggiungerli, e quindi l'albero finale è costituito dalla radice \textit{r} che ha come figli gli \textit{m-1} nodi, e gli altri \textit{n-m} nodi sono a loro volta figli degli \textit{m} nodi. Quindi tale albero di radice \textit{r} è stato costruito aggiungendo il minimo numero di archi possibile, che saranno gli stessi archi da aggiungere al grafo \textit{G} di input.
+\end{proof}
+
+\capitolo{Osservazioni finali}
+La misurazione dei tempi di esecuzione è stata effettuata su grafi orientati con un numero progressivo di nodi \textit{\{500, 600, 700, \dots , 2000\}} e con un numero incrementale di archi tra essi. La cardinalità del campione generato si basa sull'algoritmo \textit{9} degli appunti, richiedendo che l'intervallo di confidenza $\Delta$ sia minore di \textit{1/100} del tempo medio misurato. Si è scelto di utilizzare un valore di $\Delta$ relativo, pari a una frazione del tempo medio misurato, piuttosto che assoluto. Questo perchè, per input molto grandi, avere un valore fisso per $\Delta$ può portare a fare troppe iterazioni senza guadagnare molta precisione. Infine si è fissato un coefficiente di confidenza pari a \textit{95\%}. Nella pagina seguente si trovano la \cref{tab:tabellaDati} contenente i dati sperimentali ottenuti dalle misurazioni sull'algoritmo, e il grafico in \cref{fig:graficoDati} che ne fornisce una loro visualizzazione e la funzione rappresentata.\\
+Per concludere si osservi come l'andamento del grafico in \cref{fig:graficoDati} sia di tipo lineare, confermando lo studio teorico fatto in \cref{sec:complessita} sulla complessità asintotica della soluzione, la quale risulta essere lineare nel numero di archi e nodi del grafo.
+\newpage
+\begin{table}
+\centering
+\caption{Dati sperimentali}
+\label{tab:tabellaDati}
+\pgfplotstableset{% global config, for example in the preamble
+    % these columns/<colname>/.style={<options>} things define a style
+    % which applies to <colname> only.
+    columns/v/.style={int detect,column type=r,column name=$|V|$},
+    columns/e/.style={int detect,column type=r,column name=$|E|$},
+    create on use/sum/.style=
+        {create col/expr={\thisrow{v}+\thisrow{e}}},
+    columns/E/.style={
+        column name={Time(ms)},
+        dec sep align,
+    },
+    columns/D/.style={
+        string replace={0}{}, % erase ’0’
+        column name={$\Delta$}
+    },
+    empty cells with={--}, % replace empty cells with ’--’
+    every head row/.style={before row=\toprule,after row=\midrule},
+    every last row/.style={after row=\bottomrule}
+}
+\pgfplotstabletypeset[ % local config, applies only for this table
+	1000 sep={\,},
+    columns={v, e, sum, E},
+    columns/sum/.style={column name=$|V|+|E|$, sci, sci zerofill, sci sep align}
+]{\timetable}
+\end{table}
+\begin{figure}
+%\label{graficoDati}
+\centering
+\caption{Grafico dei dati sperimentali}
+\pgfplotsset{width=10cm,
+        compat=1.3,
+        legend style={font=\footnotesize}}
+\begin{tikzpicture}
+\label{fig:graficoDati}
+\begin{axis}[xlabel=$|V|+|E|$, ylabel=$Time(ms)$, legend cell align=left, legend pos=north west]
+    \addplot +[only marks] table [x expr={\thisrow{v}+\thisrow{e}}, y=E]{\timetable};
+    \addlegendentry{Punti misurati}
+    \addplot +[no markers, red] table [x expr={\thisrow{v}+\thisrow{e}}, y={create col/linear regression={y=E}}]{\timetable};
+    \addlegendentry{
+        $\pgfmathprintnumber{\pgfplotstableregressiona} \cdot x
+        \pgfmathprintnumber[print sign]{\pgfplotstableregressionb}$ Funzione lineare}
+\end{axis}
+\end{tikzpicture}
+\end{figure}
+
+\end{document}
